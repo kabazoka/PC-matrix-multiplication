@@ -11,52 +11,53 @@ int A [M][K];
 int B [K][N];
 int C [M][N];
 int goldenC [M][N];
-// Adjusted struct to hold ranges or chunks
 struct v {
-   int start_row;
-   int end_row;
+   int i; /* row */
+   int j; /* column */
 };
 
 void *runner(void *param); /* the thread */
 
 int main(int argc, char *argv[]) {
 	int i, j, k;
+	pthread_t tid[M][N];       //Thread ID
+	pthread_attr_t attr[M][N]; //Set of thread attributes
 	struct timespec t_start, t_end;
 	double elapsedTime;
-	// Re-define these arrays with the size of NUM_THREADS
-	pthread_t tid[NUM_THREADS];
-	pthread_attr_t attr[NUM_THREADS];
 	
 	for(i = 0; i < M; i++) {
 	    for(j = 0; j < N; j++) {
 			A[i][j] = rand()%100;
+			B[i][j] = rand()%100;
 		}
-	}
-	for(i = 0; i < K; i++) {
- 	   for(j = 0; j < N; j++) {
-        	B[i][j] = rand()%100;
-    }
-}
+	}	
 	
 	// start time
 	clock_gettime( CLOCK_REALTIME, &t_start);  	
 	
-	// Example of distributing work in the main function
-	int chunk_size = M / NUM_THREADS; // Determine the size of each chunk
-	for(i = 0; i < NUM_THREADS; i++) {
-		struct v *data = (struct v *) malloc(sizeof(struct v));
-		data->start_row = i * chunk_size;
-		data->end_row = (i + 1) * chunk_size - 1;
-		if(i == NUM_THREADS - 1) data->end_row = M - 1; // Ensure last thread covers all remaining
-		pthread_attr_init(&attr[i]);
-		pthread_create(&tid[i], &attr[i], runner, data);
-	}
-	
-	// Adjusted the pthread_join to match the number of threads
-	for(i = 0; i < NUM_THREADS; i++) {
-		pthread_join(tid[i], NULL);
-	}
+	for(i = 0; i < M; i++) {
+	    for(j = 0; j < N; j++) {
+		    //Assign a row and column for each thread
+			struct v *data = (struct v *) malloc(sizeof(struct v));
+			data->i = i;
+			data->j = j;
+			/* Now create the thread passing it data as a parameter */
+			//pthread_t tid;       //Thread ID
+			//pthread_attr_t attr; //Set of thread attributes
+			//Get the default attributes
+			pthread_attr_init(&attr[i][j]);
+			//Create the thread
+			pthread_create(&tid[i][j],&attr[i][j],runner,data);
+			//Make sure the parent waits for all thread to complete
+			//pthread_join(tid, NULL);
 
+		}
+	}
+	for(i = 0; i < M; i++) {
+	    for(j = 0; j < N; j++) {
+			pthread_join(tid[i][j], NULL);
+		}
+	}	
 	// stop time
 	clock_gettime( CLOCK_REALTIME, &t_end);
 
@@ -98,18 +99,13 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-// Adjusted runner function to process a chunk of the matrix
+																					//The thread will begin control in this function
 void *runner(void *param) {
-    struct v *data = (struct v*) param;
-    int i, j, k, sum;
-    for(i = data->start_row; i <= data->end_row; i++) {
-        for(j = 0; j < N; j++) {
-            sum = 0;
-            for(k = 0; k < K; k++) {
-                sum += A[i][k] * B[k][j];
-            }
-            C[i][j] = sum;
-        }
+    struct v *data = (struct v*) param; 
+    int n, sum = 0; 
+    for(n = 0; n< K; n++){
+        sum += A[data->i][n] * B[n][data->j];
     }
+    C[data->i][data->j] = sum;
     pthread_exit(0);
 }
