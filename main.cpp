@@ -2,10 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define M 1000
-#define K 1000
-#define N 1000
-#define NUM_THREADS 1000
+
+#define M 200
+#define K 200
+#define N 200
+#define NUM_THREADS 100
 
 int A [M][K];
 int B [K][N];
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]) {
 	// start time
 	clock_gettime( CLOCK_REALTIME, &t_start);  	
 	
-	// Example of distributing work in the main function
+	// Distributing work to threads
 	int chunk_size = M / NUM_THREADS; // Determine the size of each chunk
 	for(i = 0; i < NUM_THREADS; i++) {
 		struct v *data = (struct v *) malloc(sizeof(struct v));

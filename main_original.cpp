@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define M 1000
-#define K 1000
-#define N 1000
-#define NUM_THREADS 1000
+#define M 200
+#define K 200
+#define N 200
+#define NUM_THREADS 100
 
 int A [M][K];
 int B [K][N];
